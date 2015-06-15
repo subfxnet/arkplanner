@@ -1,10 +1,14 @@
 package net.subfx.arkplanner.js
 
+import net.subfx.arkplanner.css.DocStyles
+
 import scala.collection.immutable.SortedMap
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 import org.scalajs.dom.document
 import scalajs.js.JSApp
+import scalacss.Defaults._
+import scalacss.ScalaCssReact._
 
 /**
  * Main entry point for Scala.js SPA
@@ -56,6 +60,8 @@ object ArkPlanner extends JSApp {
 
   val sortedTable = SortedMap(table.groupBy(_.reqLevel).toArray:_*)
 
+  val levelChoices = levels.keys.toArray.sorted
+
   val topBar = ReactComponentB[(Survivor, Backend)]("LevelSelect")
     .render( P => {
       val (s, b) = P
@@ -68,7 +74,7 @@ object ArkPlanner extends JSApp {
         <.select(
           ^.id := "level",
           ^.onChange ==> b.setLevel,
-          sortedTable.keys map { k => <.option((s.level == k) ?= (^.selected := "true"), k) }
+          levelChoices map { k => <.option((s.level == k) ?= (^.selected := "true"), k) }
         ),
         <.span(
           ^.`class` := "points",
@@ -88,32 +94,10 @@ object ArkPlanner extends JSApp {
       val name: String = if (e.name.length >= 30) e.name.substring(0, 30-3) + "..." else e.name
       val id: String = b.mkId(e.name)
 
-      val bgStyleAttr = "bgImage".reactStyle
-      val bgStyle = bgStyleAttr :=
-        """
-          |content: " ";
-          |  display: block;
-          |  position: absolute;
-          |  left: 0;
-          |  top: 0;
-          |  width: 100%;
-          |  height: 100%;
-          |  z-index: 1;
-          |  opacity: 0.4;
-          |  background-image: url("http://hydra-media.cursecdn.com/ark.gamepedia.com/c/c4/Paintbrush.png");
-          |  background-repeat: no-repeat;
-          |  background-position: 50% 0;
-          |  -ms-background-size: cover;
-          |  -o-background-size: cover;
-          |  -moz-background-size: cover;
-          |  -webkit-background-size: cover;
-          |  background-size: cover;
-        """.stripMargin
-
       <.div(
+        DocStyles.engramBgImg(e),
         ^.`class` := "engram-icon",
         ^.id := id,
-        //e.imageUrl != "" ?= bgStyle,
         s.hasEngram(e) ?= (^.`class` := "engram-active"),
         ^.onClick --> b.toggleEngram(id),
         <.table(
@@ -155,6 +139,10 @@ object ArkPlanner extends JSApp {
   ).buildU
 
 
-  def main(): Unit = React.render(Page(), document.body)
+  def main(): Unit = {
+    DocStyles.addToDocument()
+    React.render(Page(), document.body)
+  }
+
 
 }
