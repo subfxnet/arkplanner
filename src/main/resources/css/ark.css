@@ -1,0 +1,98 @@
+body {
+  font-family: Arial;
+  border: 0px;
+  padding: 0px;
+  margin: 0px;
+}
+
+div.container {
+}
+
+div.top-bar {
+  background-color: #000;
+  border-bottom: solid 1px #aaa;
+  padding: 4px;
+  font-size: 0.85em;
+  color: #ccc;
+}
+
+span.points {
+ margin-right: 5px;
+ margin-left: 5px;
+}
+
+div.engrams {
+}
+
+div.engram-icon {
+  position: relative;
+  cursor: pointer;
+  min-width: 75px;
+  min-height: 75px;
+  height: 75px;
+  width: 75px;
+  max-width: 75px;
+  max-height: 75px;
+  border: solid 4px #ccc;
+  border-radius: 7pt;
+  padding: 4px;
+  margin: 4px;
+  float: left;
+}
+/*
+div.engram-icon::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0.4;
+  background-image: url("http://hydra-media.cursecdn.com/ark.gamepedia.com/c/c4/Paintbrush.png");
+  background-repeat: no-repeat;
+  background-position: 50% 0;
+  -ms-background-size: cover;
+  -o-background-size: cover;
+  -moz-background-size: cover;
+  -webkit-background-size: cover;
+  background-size: cover;
+}
+*/
+
+div.engram-active {
+  border-color: #a00;
+}
+
+table {
+  margin 0 auto;
+  paddding: 0;
+  min-width: 75px;
+  min-height: 75px;
+  height: 75px;
+  width: 75px;
+  max-width: 75px;
+  max-height: 75px;
+}
+
+td {
+  font-color: #efaefd;
+  font-size: 0.75em;
+  font-weight: bold;
+}
+
+td.engram-level {
+  text-align: left;
+  vertical-align: top;
+}
+
+td.engram-points {
+  text-align: right;
+  vertical-align: top;
+}
+
+td.engram-name {
+  text-align: left;
+  vertical-align: bottom;
+}
