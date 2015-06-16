@@ -15,18 +15,28 @@ import scalacss.ScalaCssReact._
  */
 object ArkPlanner extends JSApp {
 
-  import Engrams.{levels, table}
-
   case class Survivor(level: Int, engrams: List[Engram]) {
 
     def spentPoints: Int = (engrams map(e => e.points)).sum
 
-    def availablePoints: Int = (levels filterKeys ((k: Int) => level >= k)).values.sum - spentPoints
+    def availablePoints: Int = (Engrams.levels filterKeys ((k: Int) => level >= k)).values.sum - spentPoints
 
     def hasEngram(e: Engram): Boolean = engrams contains e
+
+    def toURI: String = "?" + level + "&" + ((engrams map (e => e.id)) mkString ",")
   }
 
-  val initialSurvivor = Survivor(1, Nil)
+  def loadSurvivor: Survivor = try {
+    val args = document.location.search.tail.replace("/", "").split("&")
+    Survivor(
+      args.head.toInt,
+      (args(1).split(",") flatMap { id =>
+        Engrams.engramById(id.toInt)
+      }).toList
+    )
+  } catch {
+    case e: Exception => Survivor(1, Nil)
+  }
 
   class Backend(s: BackendScope[Unit, Survivor]) {
 
@@ -41,8 +51,8 @@ object ArkPlanner extends JSApp {
 
     def checkPrereqs(e: Engram): Boolean = e.preReqs forall (en => s.state.engrams contains en)
 
-    def toggleEngram(id: String) = {
-      table.filter(en => mkId(en.name) == id) foreach { selectedEngram =>
+    def toggleEngram(id: Int) = {
+      Engrams.table.find(en => en.id == id) foreach { selectedEngram =>
         s.modState(_ => Survivor(s.state.level,
         if (s.state.hasEngram(selectedEngram))
           s.state.engrams.filterNot(en => en == selectedEngram)
@@ -58,9 +68,9 @@ object ArkPlanner extends JSApp {
     def mkId(s: String) = s.replace(" ", "")
   }
 
-  val sortedTable = SortedMap(table.groupBy(_.reqLevel).toArray:_*)
+  val sortedTable = SortedMap(Engrams.table.groupBy(_.reqLevel).toArray:_*)
 
-  val levelChoices = levels.keys.toArray.sorted
+  val levelChoices = Engrams.levels.keys.toArray.sorted
 
   val topBar = ReactComponentB[(Survivor, Backend)]("LevelSelect")
     .render( P => {
@@ -74,7 +84,7 @@ object ArkPlanner extends JSApp {
         <.select(
           ^.id := "level",
           ^.onChange ==> b.setLevel,
-          levelChoices map { k => <.option((s.level == k) ?= (^.selected := "true"), k) }
+          levelChoices map { k => <.option((s.level == k) ?= (^.selected := "selected"), k) }
         ),
         <.span(
           ^.`class` := "points",
@@ -83,7 +93,18 @@ object ArkPlanner extends JSApp {
         <.span(
           ^.`class` := "points",
           "Spent Points: " + s.spentPoints
-        )
+        ) /* ,
+        <.span(
+          ^.`class` := "uri",
+          <.label(
+            ^.`for` := "uri",
+            "Survivor URI: "
+          ),
+          <.input(
+            ^.id := "uri",
+            ^.value := s.toURI
+          )
+        )*/
       )
     }).build
 
@@ -92,14 +113,12 @@ object ArkPlanner extends JSApp {
 
       val (e, s, b) = P
       val name: String = if (e.name.length >= 30) e.name.substring(0, 30-3) + "..." else e.name
-      val id: String = b.mkId(e.name)
 
       <.div(
         DocStyles.engramBgImg(e),
         ^.`class` := "engram-icon",
-        ^.id := id,
         s.hasEngram(e) ?= (^.`class` := "engram-active"),
-        ^.onClick --> b.toggleEngram(id),
+        ^.onClick --> b.toggleEngram(e.id),
         <.table(
           <.tbody(
             <.tr(
@@ -128,7 +147,7 @@ object ArkPlanner extends JSApp {
   ).build
 
   val Page = ReactComponentB[Unit]("Page")
-    .initialState(initialSurvivor)
+    .initialState(loadSurvivor)
     .backend(new Backend(_))
     .render( (_, S, B) =>
       <.div(

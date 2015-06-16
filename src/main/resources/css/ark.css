@@ -21,6 +21,10 @@ span.points {
  margin-left: 5px;
 }
 
+span.uri {
+  float: right;
+}
+
 div.engrams {
 }
 
