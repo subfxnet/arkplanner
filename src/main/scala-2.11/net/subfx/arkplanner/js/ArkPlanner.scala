@@ -26,7 +26,7 @@ object ArkPlanner extends JSApp {
     def toURI: String = "?" + level + "&" + ((engrams map (e => e.id)) mkString ",")
   }
 
-  def loadSurvivor: Survivor = try {
+  def loadSurvivor: Survivor = Survivor(1, Nil) /*try {
     val args = document.location.search.tail.replace("/", "").split("&")
     Survivor(
       args.head.toInt,
@@ -36,7 +36,7 @@ object ArkPlanner extends JSApp {
     )
   } catch {
     case e: Exception => Survivor(1, Nil)
-  }
+  }*/
 
   class Backend(s: BackendScope[Unit, Survivor]) {
 
