@@ -26,7 +26,7 @@ object ArkPlanner extends JSApp {
     def toURI: String = "?" + level + "&" + ((engrams map (e => e.id)) mkString ",")
   }
 
-  def loadSurvivor: Survivor = Survivor(1, Nil) /*try {
+  def loadSurvivor: Survivor = Survivor(65, Nil) /*try {
     val args = document.location.search.tail.replace("/", "").split("&")
     Survivor(
       args.head.toInt,
@@ -83,8 +83,10 @@ object ArkPlanner extends JSApp {
         ),
         <.select(
           ^.id := "level",
+          ^.autoComplete := "off",
+          ^.value := s.level,
           ^.onChange ==> b.setLevel,
-          levelChoices map { k => <.option((s.level == k) ?= (^.selected := "selected"), k) }
+          levelChoices map { k => <.option((s.level == k) ?= (^.selected := "true"), k) }
         ),
         <.span(
           ^.`class` := "points",
