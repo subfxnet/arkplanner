@@ -19,7 +19,7 @@ object ArkPlanner extends JSApp {
 
     def spentPoints: Int = (engrams map(e => e.points)).sum
 
-    def availablePoints: Int = (Engrams.levels filterKeys ((k: Int) => level >= k)).values.sum - spentPoints
+    def availablePoints: Int = (Levels.levels filterKeys ((k: Int) => level >= k)).values.sum - spentPoints
 
     def hasEngram(e: Engram): Boolean = engrams contains e
 
@@ -57,7 +57,7 @@ object ArkPlanner extends JSApp {
     def checkPrereqs(e: Engram): Boolean = e.preReqs forall (en => s.state.engrams contains en)
 
     def toggleEngram(id: Int) = {
-      Engrams.table.find(en => en.id == id) foreach { selectedEngram =>
+      Engrams.engramList.find(en => en.id == id) foreach { selectedEngram =>
         s.modState(_ => Survivor(s.state.level,
         if (s.state.hasEngram(selectedEngram))
           s.state.engrams.filterNot(en => en == selectedEngram)
@@ -71,9 +71,9 @@ object ArkPlanner extends JSApp {
     }
   }
 
-  val sortedTable = SortedMap(Engrams.table.groupBy(_.reqLevel).toArray:_*)
+  val sortedTable = SortedMap(Engrams.engramList.groupBy(_.reqLevel).toArray:_*)
 
-  val levelChoices = Engrams.levels.keys.toArray.sorted
+  val levelChoices = Levels.levels.keys.toArray.sorted
 
   val sideBar = ReactComponentB[(Survivor, Backend)]("SideBar")
     .render( P => {
@@ -162,19 +162,7 @@ object ArkPlanner extends JSApp {
 
       val (e, s, b) = P
       val name: String = if (e.name.length >= 30) e.name.substring(0, 30-3) + "..." else e.name
-/*
-<div class="icon">
-  <div class="icon-inner">
-    <div class="level">7</div>
-    <div class="ep">15</div>
-  </div>
-  <div class="name">Some Thing</div>
-  <div class="icon-inner">
-    <div class="prereq">P</div>
-    <div class="recipe">R</div>
-  </div>
-</div>
- */
+
       <.div(
         DocStyles.engramBgImg(e),
         ^.`class` := "icon",

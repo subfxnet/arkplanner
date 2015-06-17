@@ -7,10 +7,10 @@ import scalacss.Defaults._
  */
 object DocStyles extends StyleSheet.Inline {
 
-  import net.subfx.arkplanner.js.Engrams.table
+  import net.subfx.arkplanner.js.Engrams.engramList
   import dsl._
 
-  val engramBgImg = styleF(Domain.ofValues(table:_*))(b =>
+  val engramBgImg = styleF(Domain.ofValues(engramList:_*))(b =>
     styleS(
       &.before(
         content := "\" \"",
