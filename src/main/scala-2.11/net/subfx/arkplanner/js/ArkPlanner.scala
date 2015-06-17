@@ -23,20 +23,25 @@ object ArkPlanner extends JSApp {
 
     def hasEngram(e: Engram): Boolean = engrams contains e
 
-    def toURI: String = "?" + level + "&" + ((engrams map (e => e.id)) mkString ",")
+    def toURI: String = document.location.origin + "/?" + level + "&" + ((engrams map (e => e.id)) mkString ",")
   }
 
-  def loadSurvivor: Survivor = Survivor(65, Nil) /*try {
-    val args = document.location.search.tail.replace("/", "").split("&")
-    Survivor(
-      args.head.toInt,
-      (args(1).split(",") flatMap { id =>
-        Engrams.engramById(id.toInt)
-      }).toList
-    )
-  } catch {
-    case e: Exception => Survivor(1, Nil)
-  }*/
+  def loadSurvivor: Survivor = {
+    if (document.location.search != "") {
+      try {
+        val args = document.location.search.tail.replace("/", "").split("&")
+        Survivor(
+          args.head.toInt,
+          (args(1).split(",") flatMap { id =>
+            Engrams.engramById(id.toInt)
+          }).toList
+        )
+      } catch {
+        case e: Exception => Survivor(65, Nil)
+      }
+    }
+    else Survivor(65, Nil)
+  }
 
   class Backend(s: BackendScope[Unit, Survivor]) {
 
@@ -64,49 +69,91 @@ object ArkPlanner extends JSApp {
         ))
       }
     }
-
-    def mkId(s: String) = s.replace(" ", "")
   }
 
   val sortedTable = SortedMap(Engrams.table.groupBy(_.reqLevel).toArray:_*)
 
   val levelChoices = Engrams.levels.keys.toArray.sorted
 
-  val topBar = ReactComponentB[(Survivor, Backend)]("LevelSelect")
+  val sideBar = ReactComponentB[(Survivor, Backend)]("SideBar")
     .render( P => {
       val (s, b) = P
       <.div(
-        ^.`class` := "top-bar",
-        <.label(
-          ^.`for` := "level",
-          "Select Level: "
+        ^.`class` := "sidebar",
+        <.div(
+          ^.`class` := "blurb",
+          "Ark: Survival Evolved survivor planner!"
         ),
-        <.select(
-          ^.id := "level",
-          ^.autoComplete := "off",
-          ^.value := s.level,
-          ^.onChange ==> b.setLevel,
-          levelChoices map { k => <.option((s.level == k) ?= (^.selected := "true"), k) }
+        <.div(
+          ^.`class` := "level-select",
+          <.div("Choose your level:"),
+          <.select(
+            ^.id := "level",
+            ^.autoComplete := "off",
+            ^.value := s.level,
+            ^.onChange ==> b.setLevel,
+            levelChoices map { k => <.option((s.level == k) ?= (^.selected := "true"), k) }
+          )
         ),
-        <.span(
-          ^.`class` := "points",
-          "Available Points: " + s.availablePoints
+        <.div(
+          ^.`class` := "points-outer",
+          "Available Points",
+          <.div(
+            ^.`class` := "points",
+            s.availablePoints
+          )
         ),
-        <.span(
-          ^.`class` := "points",
-          "Spent Points: " + s.spentPoints
-        ) /* ,
-        <.span(
+        <.div(
+          ^.`class` := "points-outer",
+          "Spent Points",
+          <.div(
+            ^.`class` := "points",
+            s.spentPoints
+          )
+        ),
+        <.ul(
+          <.li(
+            <.div(
+              ^.`class` := "key-container",
+              <.div(^.`class` := "level-key", "5"),
+              <.div(^.`class` := "key-label", "Level")
+            )
+          ),
+          <.li(
+            <.div(
+              ^.`class` := "key-container",
+              <.div(^.`class` := "ep-key", "3"),
+              <.div(^.`class` := "key-label", "Engram Points")
+            )
+          ),
+          <.li(
+            <.div(
+              ^.`class` := "key-container",
+              <.div(^.`class` := "pre-rec-key", "P"),
+              <.div(^.`class` := "key-label", "Prerequisites")
+            )
+          ),
+          <.li(
+            <.div(
+              ^.`class` := "key-container",
+              <.div(^.`class` := "pre-rec-key", "R"),
+              <.div(^.`class` := "key-label", "Recipe (materials)")
+            )
+          )
+        ),
+        <.div(
           ^.`class` := "uri",
           <.label(
             ^.`for` := "uri",
-            "Survivor URI: "
+            "Direct link to your survivor: "
           ),
-          <.input(
+          <.textarea(
             ^.id := "uri",
+            ^.cols := 20,
+            ^.rows := 5,
             ^.value := s.toURI
           )
-        )*/
+        )
       )
     }).build
 
@@ -115,25 +162,35 @@ object ArkPlanner extends JSApp {
 
       val (e, s, b) = P
       val name: String = if (e.name.length >= 30) e.name.substring(0, 30-3) + "..." else e.name
-
+/*
+<div class="icon">
+  <div class="icon-inner">
+    <div class="level">7</div>
+    <div class="ep">15</div>
+  </div>
+  <div class="name">Some Thing</div>
+  <div class="icon-inner">
+    <div class="prereq">P</div>
+    <div class="recipe">R</div>
+  </div>
+</div>
+ */
       <.div(
         DocStyles.engramBgImg(e),
-        ^.`class` := "engram-icon",
-        s.hasEngram(e) ?= (^.`class` := "engram-active"),
+        ^.`class` := "icon",
+        s.hasEngram(e) ?= (^.`class` := "icon-active"),
         ^.onClick --> b.toggleEngram(e.id),
-        <.table(
-          <.tbody(
-            <.tr(
-              <.td(^.`class` := "engram-level", "L: " + e.reqLevel),
-              <.td(^.`class` := "engram-points", "Ep: " + e.points)
-            ),
-            <.tr(
-              <.td(
-                ^.colSpan := "2", ^.title := e.name, ^.`class` := "engram-name", name)
-            )
-          )  // tbody
-        )    // table
-      )      // div
+        <.div(
+          ^.`class` := "icon-inner",
+          <.div(^.`class` := "level", e.reqLevel),
+          <.div(^.`class` := "ep", e.points)
+        ),
+        <.div(^.`class` := "name", e.name),
+        <.div(^.`class` := "icon-inner",
+          <.div(^.`class` := "prereq", "P"),
+          <.div(^.`class` := "recipe", "R")
+        )
+      )
     }
   ).build
 
@@ -141,7 +198,7 @@ object ArkPlanner extends JSApp {
     .render( P => {
       val (s: Survivor, b: Backend) = P
       <.div(
-        ^.`class` := "engrams",
+        ^.`class` := "main",
         sortedTable map { case (level, engrams) =>
           engrams map (e => engramIcon((e, s, b)))
         }
@@ -154,7 +211,7 @@ object ArkPlanner extends JSApp {
     .render( (_, S, B) =>
       <.div(
         ^.`class` := "container",
-        topBar((S, B)),
+        sideBar((S, B)),
         engramTable((S, B))
       )
   ).buildU
